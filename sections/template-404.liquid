@@ -11,10 +11,11 @@
     {% else %}
       {% assign shop_url = section.settings.button_url %}
     {% endif %}
-    <a class="px-5 py-2.5 text-base font-medium shadow inline bg-gray-800 rounded text-white hover:bg-gray-700" href="{{ shop_url }}">{{ section.settings.button_label }}</a>
+    <a class="px-5 py-2.5 text-base font-medium shadow inline bg-gray-800 rounded text-white hover:bg-gray-700" href="{{ shop_url }}">
+      {{ section.settings.button_label }}
+    </a>
   </div>
 </div>
-
 {% schema %}
   {
     "name": "Template 404",
