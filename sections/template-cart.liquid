@@ -111,22 +111,24 @@
   {% endif %}
 
   {% schema %}
+{
+  "name": "Template Cart",
+  "blocks": [
     {
-      "name": "Template Cart",
-      "blocks": [
-        {
-          "type": "subtotal",
-          "name": "Subtotal",
-          "limit": 1
-        }, {
-          "type": "update_button",
-          "name": "Update Button",
-          "limit": 1
-        }, {
-          "type": "checkout_button",
-          "name": "Checkout Button",
-          "limit": 1
-        }
-      ]
+      "type": "subtotal",
+      "name": "Subtotal",
+      "limit": 1
+    },
+    {
+      "type": "update_button",
+      "name": "Update Button",
+      "limit": 1
+    },
+    {
+      "type": "checkout_button",
+      "name": "Checkout Button",
+      "limit": 1
     }
-  {% endschema %}
+  ]
+}
+{% endschema %}
