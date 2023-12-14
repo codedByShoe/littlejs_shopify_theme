@@ -5,3 +5,24 @@
 [x-cloak] {
   display: none;
 }
+/* swiper styles */
+.swiper-button-prev,
+.swiper-button-next {
+  color: black !important;
+  top: auto !important;
+  height: 20px !important;
+}
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  font-size: 20px !important;
+}
+.swiper-pagination {
+  color: black !important;
+  bottom: 0 !important;
+}
+.swiper-pagination-bullet-active {
+  background: black !important;
+}
+.product--information {
+  height: fit-content;
+}
