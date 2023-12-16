@@ -1,6 +1,6 @@
-<div class="relative bg-white" x-data="{ 
-                               mobileMenuOpen: false, 
-                               searchBarOpen: false }">
+<script type="module" src="{{ 'header.js' | asset_url }}"></script>
+<div id="header" class="relative bg-white">
+  <p v-cloak>${greeting}</p>
   <div class="mx-auto px-4 sm:px-6">
     <div class="flex justify-between items-center py-6 md:justify-start md:space-x-10">
       <!-- STORE Name / Store Logo -->
@@ -11,7 +11,7 @@
       <div class=" md:hidden">
         <!-- Hamburger Menu -->
         <button
-          x-on:click="mobileMenuOpen = true"
+          @click="toggleMenu"
           type="button"
           class="bg-white p-2 inline-flex items-center justify-center focus:outline-none">
           {% render 'icon-hamburger-menu' %}
@@ -23,21 +23,17 @@
           {% if link.links != blank %}
             {% assign link_handle = link.handle | replace: '-', '_' %}
             <div class="relative" x-data="{ {{ link_handle }}: false }">
-              <button x-on:click="{{ link_handle }} = ! {{ link_handle }}" class="inline-flex items-center">
+              <button
+                id="dropdown_{{ forloop.index }}"
+                @click="dropdown_{{ forloop.index }} = !dropdown_{{ forloop.index }}"
+                class="inline-flex items-center">
                 {{ link.title }}
                 {% render 'icon-dropdown' %}
               </button>
 
               <div
-                  x-cloak
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-3"
-                x-transition:enter-end="opacity-100 translate-y-0"
-                x-transition:leave="transition ease-out duration-300"
-                x-transition:leave-start="opacity-100 translate-y-0"
-                x-transition:leave-end="opacity-0 translate-y-3"
-                x-show="{{ link_handle }}"
-                @click.away="{{ link_handle }} = false"
+                v-cloak
+                :class="{ 'hidden': !dropdown_{{ forloop.index }} }"
                 class="absolute z-10 -ml-5 transform px-2 w-screen max-w-md sm:px-0 lg:ml-0 lg:left-1/2 lg:-translate-x-1/2">
                 <div class="shadow-lg border ring-black ring-opacity-5 overflow-hidden rounded-lg">
                   <div class="relative grid gap-6 bg-white px-5 py-6 sm:gap-8 sm:p-8">
@@ -63,7 +59,7 @@
       </nav>
       <!-- Cart Button / Account Links -->
       <div class="hidden md:flex items-center justify-end md:flex-1 space-x-5">
-        <button x-on:click="searchBarOpen = true" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">
+        <button @click="searchMenuOpen = true" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">
           {% render 'icon-search' %}
         </button>
         <a href="{{ routes.cart_url }}" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">
@@ -82,7 +78,10 @@
       </div>
 
       <!-- Mobile Menu Container -->
-      <div x-cloak x-show="mobileMenuOpen" class="absolute z-10 top-0 inset-x-0 p-2 transform origin-top-left md:hidden">
+      <div
+        v-cloak
+        :class="{ 'hidden': !menuOpen}"
+        class="absolute z-10 top-0 inset-x-0 p-2 transform origin-top-left md:hidden">
         <div class="shadow-lg rounded-lg ring-1 ring-black ring-opacity-5 bg-white w-full">
           <div class="p-5 divide-y-2 divide-gray-50">
             <!-- Mobile Menu Header Title & Close Button -->
@@ -93,7 +92,7 @@
 
               <div class="-mr-2">
                 <button
-                  x-on:click="mobileMenuOpen = false"
+                  @click="toggleMenu"
                   type="button"
                   class="bg-white rounded-md p-2 text-gray-500">
                   {% render 'icon-close' %}
@@ -107,12 +106,18 @@
                   {% if link.links != blank %}
                     {% assign mobile_link_handle = link.handle | replace: '-', '_' %}
                     <div class="relative" x-data="{ {{ mobile_link_handle }}: false }">
-                      <button x-on:click="{{ mobile_link_handle }} = ! {{ mobile_link_handle }}" class="text-base text-gray-500 hover:text-gray-900 flex items-center justify-between w-full">
+                      <button
+                        id="mobile_dropdown_{{ forloop.index }}"
+                        @click="mobile_dropdown_{{ forloop.index }} = !mobile_dropdown_{{ forloop.index }}"
+                        class="text-base text-gray-500 hover:text-gray-900 flex items-center justify-between w-full">
                         <div>{{ link.title }}</div>
                         {% render 'icon-dropdown' %}
                       </button>
 
-                      <div x-show="{{ mobile_link_handle }}" class="grid gap-y-7 py-3">
+                      <div
+                        v-cloak
+                        :class="{'hidden': !mobile_dropdown_{{ forloop.index }}}"
+                        class="grid gap-y-7 py-3">
                         {% for childlink in link.links %}
                           <a href="{{ childlink.url }}" class="-m-3 p-3 mt-2 flex items-center rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50">
                             <span class="ml-3">{{ childlink.title }}</span>
@@ -141,25 +146,25 @@
       </div>
     </div>
   </div>
-{% render 'searchbar' %}
+  {% render 'searchbar' %}
 </div>
 
+
 {% schema %}
-{
-  "name": "Header",
-  "settings": [
-    {
-      "type": "text",
-      "id": "mobile_menu_title",
-      "default": "Menu",
-      "label": "Mobile Menu Title"
-    },
-    {
-      "type": "link_list",
-      "id": "menu",
-      "default": "main-menu",
-      "label": "Heading Navigation Menu"
-    }
-  ]
-}
+  {
+    "name": "Header",
+    "settings": [
+      {
+        "type": "text",
+        "id": "mobile_menu_title",
+        "default": "Menu",
+        "label": "Mobile Menu Title"
+      }, {
+        "type": "link_list",
+        "id": "menu",
+        "default": "main-menu",
+        "label": "Heading Navigation Menu"
+      }
+    ]
+  }
 {% endschema %}

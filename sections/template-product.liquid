@@ -38,10 +38,8 @@
     </div>
 
     <div class="product--information sticky top-5 p-2">
-      {% form 'product'
-        , product
-        , id: 'product-form'
-        , novalidate: 'novalidate' %}
+
+      <form id="productForm">
         <input
           id="product-id"
           type="hidden"
@@ -60,45 +58,62 @@
               </div>
             {% when 'price' %}
               <div class="my-3" id="price-{{ section.id }}">
-
                 <span class="text-base {% unless selected_variant.compare_at_price > selected_variant.price %}hidden {% endunless %} product-compare-at-price text-gray-500 line-through">{{ selected_variant.compare_at_price | money }}</span>
-
                 <span class="text-lg product-price text-gray-900">{{ selected_variant.price | money }}</span>
-
                 {% if selected_variant.price < selected_variant.compare_at_price %}
                   <span class="px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">Sale</span>
                 {% endif %}
               </div>
             {% when 'variant_selector' %}
+              <template v-for="option in product.options" :key="option.position">
+                <div class="my-3">
+                  <fieldset>
+                    <legend class="mb-2">${option.name}</legend>
+                    <template v-for="(value, index) in option.values" :key="index">
+                      <div class="inline space-x-1">
+                        <input
+                          type="radio"
+                          :name="value"
+                          :value="value"
+                          :key="index"
+                          @change="addSelectedOptions(value)"
+                          class=""
+                          :id="value">
+                        <label :for="value" class=" bg-white font-medium border border-gray-900 px-4 py-2 cursor-pointer hover:bg-gray-900 hover:text-white transition-all ease-in-out duration-100">${value}</label>
+                      </div>
+                    </template>
+                  </fieldset>
+                </div>
+              </template>
+            {% comment %}
               <div class="my-3 product-option space-y-3">
-                {% unless product.has_only_default_variant %}
-                  {% for option in product.options_with_values %}
-                    <fieldset>
-                      <legend class="mb-2">{{ option.name }}</legend>
-                      {% for value in option.values %}
-                        <div class="inline">
-                          <input
-                            type="radio"
-                            value="{{ value }}"
-                            name="{{ option.name }}"
-                            class="appearance-none"
-                            x-on:change="updatedVariant()"
-                            {% if option.selected_value == value %}
-                            checked
-                            {% endif %}
-                            id="{{ option.name | handlize }}-{{ value | handlize }}">
-                          <label for="{{ option.name | handlize }}-{{ value | handlize }}" class=" bg-white font-medium border border-gray-900 px-4 py-2 cursor-pointer hover:bg-gray-900 hover:text-white transition-all ease-in-out duration-100">{{ value }}</label>
-                        </div>
-                      {% endfor %}
-                    </fieldset>
-                  {% endfor %}
-                {% endunless %}
+              {% unless product.has_only_default_variant %}
+              {% for option in product.options_with_values %}
+              <fieldset>
+              <legend class="mb-2">{{ option.name }}</legend>
+              {% for value in option.values %}
+              <div class="inline">
+              <input
+              type="radio"
+              value="{{ value }}"
+              name="{{ option.name }}"
+              class="appearance-none"
+              x-on:change="updatedVariant()"
+              {% if option.selected_value == value %}
+              checked
+              {% endif %}
+              id="{{ option.name | handlize }}-{{ value | handlize }}">
+              <label for="{{ option.name | handlize }}-{{ value | handlize }}" class=" bg-white font-medium border border-gray-900 px-4 py-2 cursor-pointer hover:bg-gray-900 hover:text-white transition-all ease-in-out duration-100">{{ value }}</label>
               </div>
-
+              {% endfor %}
+              </fieldset>
+              {% endfor %}
+              {% endunless %}
+              </div>
+            {% endcomment %}
             {% when 'quantity' %}
               <div class="my-3">
                 <label for="Quantity-{{ section.id }}">Quantity</label>
-
                 <div class="my-2">
                   <input
                     type="number"
@@ -134,60 +149,43 @@
 
             {% endcase %}
           {% endfor %}
-        {% endform %}
+        </form>
       </div>
     </div>
   </div>
 
-  <script>
-    product =  {{ product | json }} 
-    productPrice = document.querySelector('.product-price')
-    productComparePrice = document.querySelector('.product-compare-at-price')
+  <script type="module">
+    import { createApp, ref, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js' 
+    import { store } from '../assets/state.js'
 
-    document.querySelectorAll('.product-option input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            let selectedOptions = []
-            document.querySelectorAll('.product-option input[type="radio"]:checked').forEach(radio => {
-                selectedOptions.push(radio.value)
-                document.querySelectorAll(`label[for=${radio.id}]`).forEach(label => {
-                if(radio.checked) {
-                label.classList.remove('bg-white')
-                label.classList.add('bg-gray-900')
-                label.classList.add('text-white')
-                }else {
-                label.classList.add('bg-white')
-                label.classList.remove('bg-gray-900')
-                label.classList.remove('text-white')
-                }
-                
-                })
-            })
-            // add and remove classes from the radios
-            // pull the variation information out of the product object 
-            let matchedVariant = product.variants.find(variant => {
-                let pass = true
-                for(let i = 0; i < selectedOptions.length; i++) {
-                    if(selectedOptions.indexOf(variant.options[i]) === -1) {
-                        pass = false
-                        break
-                    }
-                }
-                return pass
-            })
-            // update hidden input value
-            document.querySelector('#product-id').value = matchedVariant.id
-            // update url based on selected option
-            const url = new URLParse(window.location.href, true)
-            url.query.variant = matchedVariant.id
-            window.history.replaceState(null, null, url.toString())
-            // change prices based on selected option
-            productPrice.textContent = Shopify.formatMoney(matchedVariant.price,  "{{ shop.money_format }}")
-            productComparePrice.textContent = Shopify.formatMoney(matchedVariant.compare_at_price, "{{ shop.money_format }}")
-            // hide the compare at price if the item is not marked down
-            matchedVariant.compare_at_price > matchedVariant.price ? productComparePrice.classList.remove('hidden') :
-            productComparePrice.classList.add('hidden')
+    const productForm = createApp({
+    delimiters: ['${', '}'],
+      setup() {
+        const product = ref({});
+        const selectedOptions = ref([])
+
+        onMounted(() => {
+         fetch('{{ product.url }}.js')
+            .then(response => response.json())
+            .then((response) => {
+              product.value = response
+              console.log(product.value)
+          }) 
         })
-    })
+
+        function addSelectedOptions(value) {
+          selectedOptions.value.push(value)
+          console.log(selectedOptions.value)
+        }
+        
+        return {
+          product,
+          addSelectedOptions,
+          selectedOptions
+        }
+      }
+
+     }).mount('#productForm')
   </script>
 
   {% schema %}
