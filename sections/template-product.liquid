@@ -140,6 +140,9 @@
     const productForm = createApp({
     delimiters: ['${', '}'],
       setup() {
+        const url = ref('')
+        const currentParams = ref('')
+        const matchedVariation = ref('')
         const product = ref({});
         const selectedVariations = ref([])
         const selectedOptions = ref({
@@ -148,7 +151,9 @@
         })
 
         onMounted(() => {
-         fetch('{{ product.url }}.js')
+          url.value = new URL(window.location.href)
+          currentParams.value = url.value.pathname
+          console.log(currentParams.value + '.js')
             .then(response => response.json())
             .then((response) => {
               product.value = response
