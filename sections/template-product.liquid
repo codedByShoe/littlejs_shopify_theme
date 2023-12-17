@@ -76,41 +76,20 @@
                           :name="value"
                           :value="value"
                           :key="index"
-                          @change="addSelectedOptions(value)"
-                          class=""
+                          v-model="selectedVariations[option.name]"
+                          @change="addSelectedOptions(option.name, value)"
+                          class="appearance-none"
                           :id="value">
-                        <label :for="value" class=" bg-white font-medium border border-gray-900 px-4 py-2 cursor-pointer hover:bg-gray-900 hover:text-white transition-all ease-in-out duration-100">${value}</label>
+                        <label
+                          :for="value"
+                          :class="{'text-white bg-gray-900  hover:bg-gray-700': selectedVariations[option.name] === value, 'bg-white hover:bg-gray-900 hover:text-white': selectedVariations[option.name] !== value }"
+                          class=" font-medium px-4 py-2 cursor-pointer border border-gray-900 transition-all ease-in-out duration-100">${value}</label>
                       </div>
                     </template>
                   </fieldset>
                 </div>
               </template>
-            {% comment %}
-              <div class="my-3 product-option space-y-3">
-              {% unless product.has_only_default_variant %}
-              {% for option in product.options_with_values %}
-              <fieldset>
-              <legend class="mb-2">{{ option.name }}</legend>
-              {% for value in option.values %}
-              <div class="inline">
-              <input
-              type="radio"
-              value="{{ value }}"
-              name="{{ option.name }}"
-              class="appearance-none"
-              x-on:change="updatedVariant()"
-              {% if option.selected_value == value %}
-              checked
-              {% endif %}
-              id="{{ option.name | handlize }}-{{ value | handlize }}">
-              <label for="{{ option.name | handlize }}-{{ value | handlize }}" class=" bg-white font-medium border border-gray-900 px-4 py-2 cursor-pointer hover:bg-gray-900 hover:text-white transition-all ease-in-out duration-100">{{ value }}</label>
-              </div>
-              {% endfor %}
-              </fieldset>
-              {% endfor %}
-              {% endunless %}
-              </div>
-            {% endcomment %}
+
             {% when 'quantity' %}
               <div class="my-3">
                 <label for="Quantity-{{ section.id }}">Quantity</label>
@@ -162,7 +141,11 @@
     delimiters: ['${', '}'],
       setup() {
         const product = ref({});
-        const selectedOptions = ref([])
+        const selectedVariations = ref([])
+        const selectedOptions = ref({
+          'option': '',
+          'variation': ''
+        })
 
         onMounted(() => {
          fetch('{{ product.url }}.js')
@@ -172,14 +155,27 @@
               console.log(product.value)
           }) 
         })
-
-        function addSelectedOptions(value) {
-          selectedOptions.value.push(value)
-          console.log(selectedOptions.value)
+        /* This is not the cleanest thing in the world but it does a good job at catching edge cases instead of setting just
+         * the values in an array and pulling v-model on the name of the value as some variations can have similar values
+         * this way each selection is set with its option so v-model can check the value to the corresponding option
+         */
+        function addSelectedOptions(option, value) {
+         if (selectedVariations.value.some(item => item.option === option)) {
+          selectedVariations.value.forEach(item => item.option === option && (item.variation = value))
+         }else {
+          selectedOptions.value = {
+            'option': option,
+            'variation': value
+          }
+          selectedVariations.value.push(selectedOptions.value)
+         }
+          console.log(selectedVariations.value)
         }
         
         return {
           product,
+          selectedOptions,
+          selectedVariations,
           addSelectedOptions,
           selectedOptions
         }
