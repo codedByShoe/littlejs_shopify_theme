@@ -1,6 +1,3 @@
-<script src="{{ 'urlparse.min.js' | asset_url }}"></script>
-<script src="{{ 'money.js' | asset_url }}" defer></script>
-
 {% assign selected_variant = product.selected_or_first_available_variant %}
 
 <!-- TODO: create a better image selector on large screens -->
@@ -39,7 +36,7 @@
 
     <div class="product--information sticky top-5 p-2">
 
-      <form id="productForm">
+      <form id="productForm" class="space-y-6">
         <input
           id="product-id"
           type="hidden"
@@ -57,11 +54,11 @@
                 <h1 class="text-3xl text-gray-900">{{ product.title }}</h1>
               </div>
             {% when 'price' %}
-              <div class="my-3" id="price-{{ section.id }}">
-                <span class="text-base {% unless selected_variant.compare_at_price > selected_variant.price %}hidden {% endunless %} product-compare-at-price text-gray-500 line-through">{{ selected_variant.compare_at_price | money }}</span>
-                <span class="text-lg product-price text-gray-900">{{ selected_variant.price | money }}</span>
+              <div class="my-3 flex items-center justify-start space-x-2" id="price-{{ section.id }}">
+                <span v-cloak class="block text-base product-compare-at-price text-gray-500 line-through">${ money(comparePrice) }</span>
+                <span v-cloak class="block text-lg product-price text-gray-900">${ money(price) }</span>
                 {% if selected_variant.price < selected_variant.compare_at_price %}
-                  <span class="px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">Sale</span>
+                  <span class="block px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">Sale</span>
                 {% endif %}
               </div>
             {% when 'variant_selector' %}
@@ -75,15 +72,15 @@
                           type="radio"
                           :name="value"
                           :value="value"
-                          :key="index"
                           v-model="selectedVariations[option.name]"
                           @change="addSelectedOptions(option.name, value)"
-                          class="appearance-none"
-                          :id="value">
+                          class="hidden"
+                          :id="value" />
+
                         <label
                           :for="value"
                           :class="{'text-white bg-gray-900  hover:bg-gray-700': selectedVariations[option.name] === value, 'bg-white hover:bg-gray-900 hover:text-white': selectedVariations[option.name] !== value }"
-                          class=" font-medium px-4 py-2 cursor-pointer border border-gray-900 transition-all ease-in-out duration-100">${value}</label>
+                          class="font-medium px-4 py-2 cursor-pointer border border-gray-900 transition-all ease-in-out duration-100">${value}</label>
                       </div>
                     </template>
                   </fieldset>
@@ -92,15 +89,31 @@
 
             {% when 'quantity' %}
               <div class="my-3">
-                <label for="Quantity-{{ section.id }}">Quantity</label>
-                <div class="my-2">
+                <label for="Quantity-{{ section.id }}" class="sr-only">
+                  Quantity
+                </label>
+
+                <div class="w-32 flex items-center rounded border border-gray-900">
+                  <button
+                    @click="quantity > 1 ? quantity-- : quantity = 1"
+                    type="button"
+                    class="h-10 w-10 leading-10 text-gray-900 transition hover:opacity-75">
+                    &minus;
+                  </button>
+
                   <input
                     type="number"
-                    name="quantity"
                     id="Quantity-{{ section.id }}"
-                    value="1"
-                    min="1"
-                    class="w-full border px-3 py-3">
+                    name="Quantity-{{ section.id }}"
+                    v-model="quantity"
+                    class="h-10 w-16 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none" />
+
+                  <button
+                    @click="quantity++"
+                    type="button"
+                    class="h-10 w-10 leading-10 text-gray-600 transition hover:opacity-75">
+                    &plus;
+                  </button>
                 </div>
               </div>
             {% when 'description' %}
@@ -113,6 +126,7 @@
                 <button
                   type="submit"
                   name="add"
+                  @click="addToCart"
                   class="w-full px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2"
                   {% if selected_variant.available == false %}
                   disabled
@@ -135,30 +149,38 @@
 
   <script type="module">
     import { createApp, ref, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js' 
-    import { store } from '../assets/state.js'
+    import { store, money } from '../assets/state.js'
 
     const productForm = createApp({
     delimiters: ['${', '}'],
       setup() {
-        const url = ref('')
-        const currentParams = ref('')
-        const matchedVariation = ref('')
+        const url = ref('');
+        const selectedVariant = ref({});
         const product = ref({});
-        const selectedVariations = ref([])
+        const price = ref(0);
+        const comparePrice = ref(0);
+        const quantity = ref(1);
+        const selectedVariations = ref([]);
         const selectedOptions = ref({
           'option': '',
           'variation': ''
-        })
+        });
 
         onMounted(() => {
-          url.value = new URL(window.location.href)
-          currentParams.value = url.value.pathname
-          console.log(currentParams.value + '.js')
+          url.value = new URL(window.location.href);
+          const productUrl = url.value.pathname + '.js';
+          const params = new URLSearchParams(url.value.search)
+          // matchedVariation.value = params.get('variant')
+
+          fetch(productUrl)
             .then(response => response.json())
             .then((response) => {
               product.value = response
+              price.value = product.value.price;
+              comparePrice.value = product.value.compare_at_price
               console.log(product.value)
-          }) 
+          });
+          
         })
         /* This is not the cleanest thing in the world but it does a good job at catching edge cases instead of setting just
          * the values in an array and pulling v-model on the name of the value as some variations can have similar values
@@ -166,15 +188,36 @@
          */
         function addSelectedOptions(option, value) {
          if (selectedVariations.value.some(item => item.option === option)) {
-          selectedVariations.value.forEach(item => item.option === option && (item.variation = value))
+          selectedVariations.value.forEach(item => item.option === option && (item.variation = value));
          }else {
           selectedOptions.value = {
             'option': option,
             'variation': value
-          }
-          selectedVariations.value.push(selectedOptions.value)
+          };
+          selectedVariations.value.push(selectedOptions.value);
          }
-          console.log(selectedVariations.value)
+          console.log(selectedVariations.value);
+        }
+
+        // probably move to store and make dynamic so I can use with mini cart
+        function addToCart(event) {
+          event.preventDefault();
+          let variant = product.value.variants.find(variant => {
+                let pass = true;
+                for(let i = 0; i < selectedOptions.value.length; i++) {
+                    if(selectedOptions.value.indexOf(variant.options[i]) === -1) {
+                        pass = false
+                        break
+                    }
+                };
+                return pass;
+            });
+            // got the variant now just send it
+            selectedVariant.value = variant;
+            console.log(selectedVariant.value);
+            // check quantity_rule before submitting
+            console.log(quantity.value);
+
         }
         
         return {
@@ -182,7 +225,12 @@
           selectedOptions,
           selectedVariations,
           addSelectedOptions,
-          selectedOptions
+          addToCart,
+          selectedOptions,
+          quantity,
+          price,
+          comparePrice,
+          money
         }
       }
 
