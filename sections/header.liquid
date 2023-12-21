@@ -1,6 +1,6 @@
 <script type="module" src="{{ 'header.js' | asset_url }}"></script>
 <div id="header" class="relative bg-white">
-  <p v-cloak>${greeting}</p>
+  <p v-cloak>${store.state.greeting}</p>
   <div class="mx-auto px-4 sm:px-6">
     <div class="flex justify-between items-center py-6 md:justify-start md:space-x-10">
       <!-- STORE Name / Store Logo -->

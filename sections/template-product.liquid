@@ -1,3 +1,4 @@
+<script type="module" src="{{ 'productForm.js' | asset_url }}"></script>
 {% assign selected_variant = product.selected_or_first_available_variant %}
 
 <!-- TODO: create a better image selector on large screens -->
@@ -55,8 +56,8 @@
               </div>
             {% when 'price' %}
               <div class="my-3 flex items-center justify-start space-x-2" id="price-{{ section.id }}">
-                <span v-cloak class="block text-base product-compare-at-price text-gray-500 line-through">${ money(comparePrice) }</span>
-                <span v-cloak class="block text-lg product-price text-gray-900">${ money(price) }</span>
+                <span v-cloak class="block text-base product-compare-at-price text-gray-500 line-through">${ store.money(selectedOrFirstVariant.comparePrice) }</span>
+                <span v-cloak class="block text-lg product-price text-gray-900">${ store.money(selectedOrFirstVariant.price) }</span>
                 {% if selected_variant.price < selected_variant.compare_at_price %}
                   <span class="block px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">Sale</span>
                 {% endif %}
@@ -72,14 +73,14 @@
                           type="radio"
                           :name="value"
                           :value="value"
-                          v-model="selectedVariations[option.name]"
-                          @change="addSelectedOptions(option.name, value)"
+                          @change="handleSelectedVariations(option.name, value)"
+                          v-model="mapVariations"
                           class="hidden"
                           :id="value" />
 
                         <label
                           :for="value"
-                          :class="{'text-white bg-gray-900  hover:bg-gray-700': selectedVariations[option.name] === value, 'bg-white hover:bg-gray-900 hover:text-white': selectedVariations[option.name] !== value }"
+                          :class="{'text-white bg-gray-900  hover:bg-gray-700': mapVariations.includes(value), 'bg-white hover:bg-gray-900 hover:text-white': !mapVariations.includes(value) }"
                           class="font-medium px-4 py-2 cursor-pointer border border-gray-900 transition-all ease-in-out duration-100">${value}</label>
                       </div>
                     </template>
@@ -95,7 +96,7 @@
 
                 <div class="w-32 flex items-center rounded border border-gray-900">
                   <button
-                    @click="quantity > 1 ? quantity-- : quantity = 1"
+                    @click="selectedOrFirstVariant.quantity > 1 ? selectedOrFirstVariant.quantity-- : selectedOrFirstVariant.quantity = 1"
                     type="button"
                     class="h-10 w-10 leading-10 text-gray-900 transition hover:opacity-75">
                     &minus;
@@ -105,11 +106,11 @@
                     type="number"
                     id="Quantity-{{ section.id }}"
                     name="Quantity-{{ section.id }}"
-                    v-model="quantity"
+                    v-model="selectedOrFirstVariant.quantity"
                     class="h-10 w-16 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none" />
 
                   <button
-                    @click="quantity++"
+                    @click="selectedOrFirstVariant.quantity++"
                     type="button"
                     class="h-10 w-10 leading-10 text-gray-600 transition hover:opacity-75">
                     &plus;
@@ -124,9 +125,8 @@
             {% when 'checkout_buttons' %}
               <div class="my-3">
                 <button
-                  type="submit"
                   name="add"
-                  @click="addToCart"
+                  @click="store.addToCart($event, selectedOrFirstVariant)"
                   class="w-full px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2"
                   {% if selected_variant.available == false %}
                   disabled
@@ -146,96 +146,6 @@
       </div>
     </div>
   </div>
-
-  <script type="module">
-    import { createApp, ref, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js' 
-    import { store, money } from '../assets/state.js'
-
-    const productForm = createApp({
-    delimiters: ['${', '}'],
-      setup() {
-        const url = ref('');
-        const selectedVariant = ref({});
-        const product = ref({});
-        const price = ref(0);
-        const comparePrice = ref(0);
-        const quantity = ref(1);
-        const selectedVariations = ref([]);
-        const selectedOptions = ref({
-          'option': '',
-          'variation': ''
-        });
-
-        onMounted(() => {
-          url.value = new URL(window.location.href);
-          const productUrl = url.value.pathname + '.js';
-          const params = new URLSearchParams(url.value.search)
-          // matchedVariation.value = params.get('variant')
-
-          fetch(productUrl)
-            .then(response => response.json())
-            .then((response) => {
-              product.value = response
-              price.value = product.value.price;
-              comparePrice.value = product.value.compare_at_price
-              console.log(product.value)
-          });
-          
-        })
-        /* This is not the cleanest thing in the world but it does a good job at catching edge cases instead of setting just
-         * the values in an array and pulling v-model on the name of the value as some variations can have similar values
-         * this way each selection is set with its option so v-model can check the value to the corresponding option
-         */
-        function addSelectedOptions(option, value) {
-         if (selectedVariations.value.some(item => item.option === option)) {
-          selectedVariations.value.forEach(item => item.option === option && (item.variation = value));
-         }else {
-          selectedOptions.value = {
-            'option': option,
-            'variation': value
-          };
-          selectedVariations.value.push(selectedOptions.value);
-         }
-          console.log(selectedVariations.value);
-        }
-
-        // probably move to store and make dynamic so I can use with mini cart
-        function addToCart(event) {
-          event.preventDefault();
-          let variant = product.value.variants.find(variant => {
-                let pass = true;
-                for(let i = 0; i < selectedOptions.value.length; i++) {
-                    if(selectedOptions.value.indexOf(variant.options[i]) === -1) {
-                        pass = false
-                        break
-                    }
-                };
-                return pass;
-            });
-            // got the variant now just send it
-            selectedVariant.value = variant;
-            console.log(selectedVariant.value);
-            // check quantity_rule before submitting
-            console.log(quantity.value);
-
-        }
-        
-        return {
-          product,
-          selectedOptions,
-          selectedVariations,
-          addSelectedOptions,
-          addToCart,
-          selectedOptions,
-          quantity,
-          price,
-          comparePrice,
-          money
-        }
-      }
-
-     }).mount('#productForm')
-  </script>
 
   {% schema %}
     {

@@ -1,19 +1,18 @@
-import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js' 
-import { store } from './state.js'
+import { createApp, ref, provide, inject } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js' 
+import store from './store.js'
 
  const header = createApp({
     delimiters: ['${', '}'],
     setup() {
+        const store = inject("store");
         const menuOpen = ref(false)
         const mobile_dropdown_3 = ref(false)
         const dropdown_3 = ref(false)
         const searchMenuOpen = ref(false)
-        const greeting = store.greeting
 
         function toggleMenu() {
             menuOpen.value = !menuOpen.value
         }
-        
 
         return {
         toggleMenu,
@@ -21,8 +20,10 @@ import { store } from './state.js'
         mobile_dropdown_3,
         dropdown_3,
         searchMenuOpen,
-        greeting
+        store
 
         }
     }
-}).mount('#header')
+});
+header.provide('store', store);
+header.mount('#header')
