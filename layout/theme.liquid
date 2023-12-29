@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html data-theme="light">
   <head>
     <title>{{ page_title }}</title>
     <meta charset="utf-8">
@@ -12,9 +12,12 @@
     {{ 'output.css' | asset_url | stylesheet_tag }}
   </head>
   <body>
-    {% section 'header' %}
-    <main role="main">
-      {{ content_for_layout }}
-    </main>
+    
+        <!-- Page content here -->
+        
+        {% section 'header' %}
+        <main role="main">
+          {{ content_for_layout }}
+        </main>
   </body>
 </html>

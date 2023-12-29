@@ -1,154 +1,80 @@
 <script type="module" src="{{ 'header.js' | asset_url }}"></script>
-<div id="header" class="relative bg-white">
-  <p v-cloak>${store.state.greeting}</p>
-  <div class="mx-auto px-4 sm:px-6">
-    <div class="flex justify-between items-center py-6 md:justify-start md:space-x-10">
-      <!-- STORE Name / Store Logo -->
-      <div class="flex justify-start lg:flex-1 truncate">
-        <h1 class="text-xl font-bold truncate">{{ shop.name }}</h1>
+<!-- mega menu -->
+<section id="header">
+  <div class="navbar bg-base-100 relative max-w-7xl mx-auto">
+    <div class="navbar-start">
+      <div class="hidden lg:flex">
+        <ul class="menu menu-horizontal space-x-2">
+          <li>twitter</li>
+          <li>facebook</li>
+          <li>instagram</li>
+          <li>tiktok</li>
+        </ul>
       </div>
-
-      <div class=" md:hidden">
-        <!-- Hamburger Menu -->
+      <!-- mobile dropdown -->
+      <div class=" lg:hidden">
         <button
           @click="toggleMenu"
           type="button"
-          class="bg-white p-2 inline-flex items-center justify-center focus:outline-none">
+          class="btn btn-ghost">
           {% render 'icon-hamburger-menu' %}
         </button>
       </div>
-      <!-- Navigation Menu -->
-      <nav class="hidden md:flex space-x-10">
-        {% for link in section.settings.menu.links %}
-          {% if link.links != blank %}
-            {% assign link_handle = link.handle | replace: '-', '_' %}
-            <div class="relative" x-data="{ {{ link_handle }}: false }">
-              <button
-                id="dropdown_{{ forloop.index }}"
-                @click="dropdown_{{ forloop.index }} = !dropdown_{{ forloop.index }}"
-                class="inline-flex items-center">
-                {{ link.title }}
-                {% render 'icon-dropdown' %}
-              </button>
-
-              <div
-                v-cloak
-                :class="{ 'hidden': !dropdown_{{ forloop.index }} }"
-                class="absolute z-10 -ml-5 transform px-2 w-screen max-w-md sm:px-0 lg:ml-0 lg:left-1/2 lg:-translate-x-1/2">
-                <div class="shadow-lg border ring-black ring-opacity-5 overflow-hidden rounded-lg">
-                  <div class="relative grid gap-6 bg-white px-5 py-6 sm:gap-8 sm:p-8">
-                    <!-- Dropdown Sub links -->
-                    {% for childlink in link.links %}
-                      <a href="{{ childlink.url }}" class="-m-3 p-3 flex items-start rounded-lg hover:bg-gray-100">
-                        <div class="ml-4">
-                          <p class="text-gray-900 text-base font-medium">
-                            {{ childlink.title }}
-                          </p>
-                        </div>
-                      </a>
-                    {% endfor %}
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          {% else %}
-            <a href="{{ link.url }}" class="text-base text-gray-500 hover:text-gray-700">{{ link.title }}</a>
-          {% endif %}
-        {% endfor %}
-      </nav>
-      <!-- Cart Button / Account Links -->
-      <div class="hidden md:flex items-center justify-end md:flex-1 space-x-5">
-        <button @click="searchMenuOpen = true" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">
-          {% render 'icon-search' %}
-        </button>
-        <a href="{{ routes.cart_url }}" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">
-          {% render 'icon-shopping-bag' %}
+    </div>
+    <div class="navbar-center flex">
+      {% if settings.logo != blank %}
+        <a href="{{ shop.url }}">
+          <img src="{{ settings.logo | img_url: '100x' }}" alt="{{ shop.name | escape }}">
         </a>
+      {% else %}
+        <a href="{{ shop.url }}" class="btn btn-ghost text-xl">{{ shop.name }}</a>
+      {% endif %}
+    </div>
+    <div class="navbar-end">
+      <ul class="menu menu-horizontal">
+        <li>
+          <button @click="searchMenuOpen = true" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">
+            {% render 'icon-search' %}
+          </button>
+        </li>
+        <li class="relative">
+          <button class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">{% render 'icon-shopping-bag' %}
+            <span class="bg-neutral rounded-full px-2 text-base-100 absolute top-[-4px] right-[6px]">${cartCount}</span>
+          </button>
+        </li>
+      </ul>
+      <ul class="menu menu-horizontal hidden lg:flex">
+        {% render 'header-customer-links' %}
+      </ul>
+    </div>
 
-        {% if shop.customer_accounts_enabled %}
-          {% if customer %}
-            <a href="{{ routes.account_url }}" class="text-base text-gray-500 hover:text-gray-900">account</a>
-            {{ 'Log out' | customer_logout_link | replace: '<a', '<a class="text-base text-gray-500 hover:text-gray-900"' }}
-          {% else %}
-            {{ 'Log in' | customer_login_link | replace: '<a', '<a class="text-base text-gray-500 hover:text-gray-900"' }}
-            {{ 'Register' | customer_register_link | replace: '<a', '<a class="text-base text-gray-500 hover:text-gray-900"' }}
-          {% endif %}
-        {% endif %}
-      </div>
-
-      <!-- Mobile Menu Container -->
-      <div
-        v-cloak
-        :class="{ 'hidden': !menuOpen}"
-        class="absolute z-10 top-0 inset-x-0 p-2 transform origin-top-left md:hidden">
-        <div class="shadow-lg rounded-lg ring-1 ring-black ring-opacity-5 bg-white w-full">
-          <div class="p-5 divide-y-2 divide-gray-50">
-            <!-- Mobile Menu Header Title & Close Button -->
-            <div class="flex items-center justify-between pb-3">
-              <div>
-                <h1 class="text-lg text-gray-500">{{ section.settings.mobile_menu_title }}</h1>
-              </div>
-
-              <div class="-mr-2">
-                <button
-                  @click="toggleMenu"
-                  type="button"
-                  class="bg-white rounded-md p-2 text-gray-500">
-                  {% render 'icon-close' %}
-                </button>
-              </div>
-            </div>
-            <!-- Nav Links For Mobile Menu -->
-            <div class="pt-3">
-              <nav class="grid gap-y-7">
-                {% for link in section.settings.menu.links %}
-                  {% if link.links != blank %}
-                    {% assign mobile_link_handle = link.handle | replace: '-', '_' %}
-                    <div class="relative" x-data="{ {{ mobile_link_handle }}: false }">
-                      <button
-                        id="mobile_dropdown_{{ forloop.index }}"
-                        @click="mobile_dropdown_{{ forloop.index }} = !mobile_dropdown_{{ forloop.index }}"
-                        class="text-base text-gray-500 hover:text-gray-900 flex items-center justify-between w-full">
-                        <div>{{ link.title }}</div>
-                        {% render 'icon-dropdown' %}
-                      </button>
-
-                      <div
-                        v-cloak
-                        :class="{'hidden': !mobile_dropdown_{{ forloop.index }}}"
-                        class="grid gap-y-7 py-3">
-                        {% for childlink in link.links %}
-                          <a href="{{ childlink.url }}" class="-m-3 p-3 mt-2 flex items-center rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50">
-                            <span class="ml-3">{{ childlink.title }}</span>
-                          </a>
-                        {% endfor %}
-                      </div>
-                    </div>
-                  {% else %}
-                    <a href="{{ link.url }}">{{ link.title }}</a>
-                  {% endif %}
-                {% endfor %}
-                <!-- Customer Account Links -->
-                {% if shop.customer_accounts_enabled %}
-                  {% if customer %}
-                    <a href="/account" class="text-base text-gray-500 hover:text-gray-900">account</a>
-                    {{ 'Log out' | customer_logout_link | replace: '<a', '<a class="text-base text-gray-500 hover:text-gray-900"' }}
-                  {% else %}
-                    {{ 'Log in' | customer_login_link | replace: '<a', '<a class="text-base text-gray-500 hover:text-gray-900"' }}
-                    {{ 'Register' | customer_register_link | replace: '<a', '<a class="text-base text-gray-500 hover:text-gray-900"' }}
-                  {% endif %}
-                {% endif %}
-              </nav>
-            </div>
-          </div>
-        </div>
+    <div
+      v-show="menuOpen"
+      v-cloak
+      class="pt-3 absolute shadow bg-base-100 top-28 left-0 right-0 border-t-2">
+      <div class="flex flex-col">
+        <ul class="menu p-2 m-1">
+          {% render 'header-menu-links'
+            , links: section.settings.menu.links %}
+        </ul>
+        <ul class="menu p-2 m-1">
+          {% render 'header-customer-links' %}
+        </ul>
       </div>
     </div>
+    {% render 'searchbar' %}
   </div>
-  {% render 'searchbar' %}
-</div>
-
+  <div class="divider max-w-7xl mx-auto my-0"></div>
+  <div class="bg-base-100 items-center justify-center hidden lg:flex">
+    <div class="">
+      <!-- desktop menu -->
+      <ul class="menu menu-horizontal px-1">
+        {% render 'header-menu-links'
+          , links: section.settings.menu.links %}
+      </ul>
+    </div>
+  </div>
+</section>
 
 {% schema %}
   {

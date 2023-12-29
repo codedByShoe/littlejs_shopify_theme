@@ -1,63 +1,95 @@
+<script type="module" src="{{ 'cart.js' | asset_url }}"></script>
 {% if cart.item_count > 0 %}
-  <div class="p-4">
-    <div class="max-w-6xl flex flex-col my-10 mx-auto">
-      <div class="flex items-end justify-between my-5">
-        <h1 class="text-3xl">Your cart</h1>
-        <a href="{{ routes.all_products_collection_url }}" class="text-blue-600 hover:text-blue-800 font-medium underline">Continue shopping</a>
-      </div>
-    </div>
+  <section id="cart">
+    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div class="mx-auto max-w-5xl">
+        <header class="text-center">
+          <h1 class="text-xl font-bold text-gray-900 sm:text-3xl">Your Cart</h1>
+        </header>
 
-    <div class="max-w-6xl flex flex-col my-10 mx-auto">
-      <form
-        action="{{ routes.cart_url }}"
-        method="POST"
-        novalidate>
-        <table class="table-auto divide-y divide-gray-200 my-4 w-full">
-          <thead>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Product</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Quantity</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Total Price</th>
-          </thead>
-          <tbody>
-            {% for item in cart.items %}
-              <tr class="table-row">
-                <td class="py-4 px-2 flex flex-col justify-center">
-                  <a href="{{ item.url }}">
-                    {% if item.image %}
+        <div class="mt-8">
+          <ul class="space-y-4">
+              <template v-for="item in cartItems" :key="item.id">
+                <li v-cloak class="flex items-center gap-4">
+                  <a :href="item.url">
                       <img
-                        src="{{ item.image | img_url: 'small' }}"
-                        alt="{{ item.title | escape }}"
-                        class="w-20 h-20 object-cover border"
+                        :src="item.image"
+                        alt="item.image_alt"
+                        class="w-16 h-16 object-cover rounded"
                         loading="eager" />
-                    {% else %}
-                      {{ 'product-1' | placeholder_svg_tag: 'w-20 h-20 object-cover border' }}
-                    {% endif %}
                   </a>
-                </td>
-                <td class="py-4 px-2 flex flex-col justify-center">
-                  <a href="{{ item.url }}" class="my-1">{{ item.product.title | truncatewords: 5 }}</a>
-                  <span class="text-sm text-gray-500 my-1">{{ item.variant.title }}</span>
-                  <a href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity=0" class="text-sm font-medium text-red-500 my-1">remove</a>
-                </td>
-                <td class="py-4 px-2">
-                  <input
-                    type="number"
-                    name="updates[]"
-                    value="{{ item.quantity }}"
-                    min="1"
-                    id="updates_{{ forloop.index }}"
-                    class="w-20 border p-2">
-                </td>
-                <td class="py-4 px-2">
-                  {{ item.line_price | money }}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+                  <div>
+                  <h3 class=" text-gray-900">
+                    <a :href="item.url" class="my-1">${item.title}</a>
+                  </h3>
+                    <template v-for="(option, index) in item.item_options" :key="index">
+                      <dl class="mt-0.5 space-y-px text-[12px] text-gray-600">
+                        <div>
+                          <dt class="inline">${option.name}: </dt>
+                          <dd class="inline">${option.value}</dd>
+                        </div>
+                      </dl>
+                    </template>
+                    </div>
+                  <div class="mt-0.5 flex flex-1 justify-end text-gray-600">
+                  <label for="Quantity-" class="sr-only">
+                    Quantity
+                  </label>
+                  <div class="w-32 flex items-center rounded border border-gray-900">
+                    <button
+                      @click="item.quantity = decrementQuantity(item.key, item.quantity)"
+                      type="button"
+                      class="h-10 w-10 leading-10 text-gray-900 transition hover:opacity-75">
+                      &minus;
+                    </button>
 
-        <div class="flex flex-col md:flex-row items-center justify-between">
-          <div class="w-full my-4">
+                    <input
+                      type="number"
+                      id="Quantity-"
+                      name="Quantity-"
+                      :value="item.quantity"
+                      class="h-10 w-16 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none" />
+
+                    <button
+                      @click="item.quantity = incrementQuantity(item.key, item.quantity)"
+                      type="button"
+                      class="h-10 w-10 leading-10 text-gray-600 transition hover:opacity-75">
+                      &plus;
+                    </button>
+                  </div>
+                  </div>
+
+                  <div class="flex flex-1 items-center justify-end gap-4">
+                    <span>${store.money(item.price)}</span>
+
+                    <button @click="removeFromCart($event, item.key)" class="text-gray-600 transition hover:text-red-600">
+                      <span class="sr-only">Remove item</span>
+                      {% render 'icon-trash' %}
+                    </button>
+                  </div>
+                </li>
+              </template>
+          </ul>
+
+          {% comment %} Totals {% endcomment %}
+          <div class="mt-8 flex justify-end border-t border-gray-100 pt-8">
+            <div class="w-screen max-w-lg space-y-4">
+              <dl class="space-y-0.5 text-sm text-gray-700">
+                <div v-cloak class="flex justify-between my-4">
+                  <dt>Subtotal</dt>
+                  <dd>${store.money(cartSubtotal)}</dd>
+                </div>
+
+              <div class="flex justify-end">
+                <a href="#" class="btn btn-neutral">
+                  Checkout
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+{% comment %} notes do something with this {% endcomment %}
+        <div class="w-full my-4">
             <div class="flex flex-col items-start">
               <label for="cart_notes" class="my-1">Cart notes</label>
               <textarea
@@ -66,37 +98,9 @@
                 class="w-full md:max-w-lg resize-none border h-20"></textarea>
             </div>
           </div>
-          <div class="w-full my-4 md:w-80">
-            {% for block in section.blocks %}
-              {% case block.type %}
-                {% when 'subtotal' %}
-                  <h3 class="text-xl">Subtotal: {{ cart.total_price | money }}</h3>
-                {% when 'update_button' %}
-                  <div class="my-2">
-                    <button
-                      type="submit"
-                      name="update"
-                      class="w-full p-3 border border-gray-600 text-gray-600 font-medium hover:bg-gray-600 hover:text-white">
-                      Update
-                    </button>
-                  </div>
-                {% when 'checkout_button' %}
-                  <div class="my-2">
-                    <button
-                      type="submit"
-                      name="checkout"
-                      class="w-full p-3 border border-gray-600 font-medium bg-gray-600 text-white">
-                      Checkout
-                    </button>
-                  </div>
-              {% else %}
-                {% endcase %}
-              {% endfor %}
-            </div>
-          </div>
-        </form>
       </div>
     </div>
+  </section>
   {% else %}
     <div class="max-w-6xl h-60 my-4 mx-auto flex items-center justify-center">
       <div class="text-center">
@@ -110,25 +114,25 @@
     </div>
   {% endif %}
 
+
+
   {% schema %}
-{
-  "name": "Template Cart",
-  "blocks": [
     {
-      "type": "subtotal",
-      "name": "Subtotal",
-      "limit": 1
-    },
-    {
-      "type": "update_button",
-      "name": "Update Button",
-      "limit": 1
-    },
-    {
-      "type": "checkout_button",
-      "name": "Checkout Button",
-      "limit": 1
+      "name": "Template Cart",
+      "blocks": [
+        {
+          "type": "subtotal",
+          "name": "Subtotal",
+          "limit": 1
+        }, {
+          "type": "update_button",
+          "name": "Update Button",
+          "limit": 1
+        }, {
+          "type": "checkout_button",
+          "name": "Checkout Button",
+          "limit": 1
+        }
+      ]
     }
-  ]
-}
-{% endschema %}
+  {% endschema %}

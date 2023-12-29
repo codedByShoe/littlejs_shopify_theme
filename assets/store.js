@@ -1,8 +1,16 @@
-import { reactive, readonly } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js' 
- const state = reactive({
+import { reactive } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js' 
+ const store = reactive({
+    cart: {
+        cartCount: 0
+    },
     greeting: 'Hello from store',
-    
+    async getCart() {
+        const response = await fetch('/cart.js');
+        const response_1 = await response.json();
+        this.cart.cartCount = response_1.item_count;
+    },
 })
+
 
 const url = new URL(window.location);
 
@@ -20,7 +28,7 @@ const getQueryParam = (value) => {
     return url.searchParams.has(value) ? url.searchParams.get(value) : null;
 }
 
-const addToCart = (e, selectedProduct) => {
+const addToCart = async (e, selectedProduct) => {
     e.preventDefault();
 
     let data = {
@@ -28,32 +36,50 @@ const addToCart = (e, selectedProduct) => {
         quantity: selectedProduct.quantity
     }
 
-    fetch('/cart/add.js', {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
+    try {
+        const response = await fetch('/cart/add.js', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
         if (!response.ok) {
             console.log(`HTTP error! status: ${response.status}`);
         }
-        console.log(response.text()); 
-    })
-    .then(responseData => {
-        console.log(responseData); // Handle the response data
-    })
-    .catch(error => {
+        return await response.json();
+    } catch (error) {
         console.log(`There was a problem with the fetch operation: ${error}`);
-    });
-    // check quantity_rule before submitting
+    }
 }
+
+
+const updateCart = async (data) => {
+    try {
+        const response = await fetch('/cart/change.js', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            console.log(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.log(`There was a problem with the fetch operation: ${error}`);
+    }
+}
+
+
+
 export default {
-    state: readonly(state),
+    state: store,
     url,
     money,
     setQueryParam,
     getQueryParam,
-    addToCart
+    addToCart,
+    updateCart,
 }
