@@ -1,4 +1,4 @@
-<script type="module" src="{{ 'productForm.js' | asset_url }}"></script>
+<script src="{{ 'productForm.js' | asset_url }}" defer></script>
 {% assign selected_variant = product.selected_or_first_available_variant %}
 
 <!-- TODO: create a better image selector on large screens -->
@@ -36,8 +36,10 @@
     </div>
 
     <div class="product--information sticky top-5 p-2">
-
-      <form id="productForm" class="space-y-6">
+      {% form 'product'
+        , product
+        , id: 'product-form'
+        , novalidate: 'novalidate' %}
         <input
           id="product-id"
           type="hidden"
@@ -55,66 +57,56 @@
                 <h1 class="text-3xl text-gray-900">{{ product.title }}</h1>
               </div>
             {% when 'price' %}
-              <div class="my-3 flex items-center justify-start space-x-2" id="price-{{ section.id }}">
-                <span v-cloak class="block text-base product-compare-at-price text-gray-500 line-through">${ store.money(selectedOrFirstVariant.comparePrice) }</span>
-                <span v-cloak class="block text-lg product-price text-gray-900">${ store.money(selectedOrFirstVariant.price) }</span>
+              <div class="my-3" id="price-{{ section.id }}">
+
+                <span class="text-base {% unless selected_variant.compare_at_price > selected_variant.price %}hidden {% endunless %} product-compare-at-price text-gray-500 line-through">{{ selected_variant.compare_at_price | money }}</span>
+
+                <span class="text-lg product-price text-gray-900">{{ selected_variant.price | money }}</span>
+
                 {% if selected_variant.price < selected_variant.compare_at_price %}
-                  <span class="block px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">Sale</span>
+                  <span class="px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">Sale</span>
                 {% endif %}
               </div>
             {% when 'variant_selector' %}
-              <template v-for="option in product.options" :key="option.position">
-                <div class="my-3">
-                  <fieldset>
-                    <legend class="mb-2">${option.name}</legend>
-                    <template v-for="(value, index) in option.values" :key="index">
-                      <div class="inline space-x-1">
-                        <input
-                          type="radio"
-                          :name="value"
-                          :value="value"
-                          @change="handleSelectedVariations(option.name, value)"
-                          v-model="mapVariations"
-                          class="hidden"
-                          :id="value" />
-
-                        <label
-                          :for="value"
-                          :class="{'text-white bg-gray-900  hover:bg-gray-700': mapVariations.includes(value), 'bg-white hover:bg-gray-900 hover:text-white': !mapVariations.includes(value) }"
-                          class="font-medium px-4 py-2 cursor-pointer border border-gray-900 transition-all ease-in-out duration-100">${value}</label>
-                      </div>
-                    </template>
-                  </fieldset>
-                </div>
-              </template>
+              <div class="my-3 product-option space-y-3">
+                {% unless product.has_only_default_variant %}
+                  {% for option in product.options_with_values %}
+                    <fieldset>
+                      <legend class="mb-2">{{ option.name }}</legend>
+                      {% for value in option.values %}
+                        <div class="inline">
+                          <input
+                            type="radio"
+                            value="{{ value }}"
+                            name="{{ option.name }}"
+                            class="hidden"
+                            {% if option.selected_value == value %}
+                            checked
+                            {% endif %}
+                            id="{{ option.name | handlize }}-{{ value | handlize }}">
+                          <label
+                            id="{{ option.name | handlize }}-{{ value | handlize }}"
+                            for="{{ option.name | handlize }}-{{ value | handlize }}"
+                            class="{% if option.selected_value == value %} bg-gray-900 text-white {% endif %}font-medium border border-gray-900 px-4 py-2 cursor-pointer hover:bg-gray-900 hover:text-white transition-all ease-in-out duration-100">{{ value }}</label>
+                        </div>
+                      {% endfor %}
+                    </fieldset>
+                  {% endfor %}
+                {% endunless %}
+              </div>
 
             {% when 'quantity' %}
               <div class="my-3">
-                <label for="Quantity-{{ section.id }}" class="sr-only">
-                  Quantity
-                </label>
+                <label for="Quantity-{{ section.id }}">Quantity</label>
 
-                <div class="w-32 flex items-center rounded border border-gray-900">
-                  <button
-                    @click="selectedOrFirstVariant.quantity > 1 ? selectedOrFirstVariant.quantity-- : selectedOrFirstVariant.quantity = 1"
-                    type="button"
-                    class="h-10 w-10 leading-10 text-gray-900 transition hover:opacity-75">
-                    &minus;
-                  </button>
-
+                <div class="my-2">
                   <input
                     type="number"
+                    name="quantity"
                     id="Quantity-{{ section.id }}"
-                    name="Quantity-{{ section.id }}"
-                    v-model="selectedOrFirstVariant.quantity"
-                    class="h-10 w-16 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none" />
-
-                  <button
-                    @click="selectedOrFirstVariant.quantity++"
-                    type="button"
-                    class="h-10 w-10 leading-10 text-gray-600 transition hover:opacity-75">
-                    &plus;
-                  </button>
+                    value="1"
+                    min="1"
+                    class="w-full border px-3 py-3">
                 </div>
               </div>
             {% when 'description' %}
@@ -125,8 +117,8 @@
             {% when 'checkout_buttons' %}
               <div class="my-3">
                 <button
+                  type="submit"
                   name="add"
-                  @click="store.addToCart($event, selectedOrFirstVariant)"
                   class="w-full px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2"
                   {% if selected_variant.available == false %}
                   disabled
@@ -142,7 +134,7 @@
 
             {% endcase %}
           {% endfor %}
-        </form>
+        {% endform %}
       </div>
     </div>
   </div>

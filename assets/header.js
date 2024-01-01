@@ -1,34 +1,36 @@
-import { createApp, ref, provide, inject, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js' 
-import store from './store.js'
 
- const header = createApp({
-    delimiters: ['${', '}'],
-    setup() {
-        const store = inject("store");
-        const menuOpen = ref(false)
-        const mobile_dropdown_3 = ref(false)
-        const dropdown_3 = ref(false)
-        const searchMenuOpen = ref(false)
-        const cartCount = ref(0)
+const getCartItemsCount =  async () => {
+    const response = await fetch('/cart.js');
+    const response_1 = await response.json();
+    return response_1.item_count;
+}
 
-        onMounted(async () => {
-            console.log(store.state.cart.cartCount)
-        })
+getCartItemsCount()
+.then(itemCount => {
+    document.getElementById('counter').innerHTML = itemCount
+})
 
-        function toggleMenu() {
-            menuOpen.value = !menuOpen.value
-        }
 
-        return {
-        toggleMenu,
-        menuOpen,
-        mobile_dropdown_3,
-        dropdown_3,
-        searchMenuOpen,
-        store,
-        cartCount
-        }
+const toggleMobileMenu = () => {
+    const mobileMenu = document.getElementById('mobile-menu');
+    if(mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.remove('hidden');
+        mobileMenu.classList.add('absolute');
+    }else {
+        mobileMenu.classList.remove('absolute');
+        mobileMenu.classList.add('hidden');
     }
-});
-header.provide('store', store);
-header.mount('#header')
+}
+
+const toggleSearchMenu = () => {
+    const searchMenu = document.getElementById('search-menu');
+    if(searchMenu.classList.contains('hidden')) {
+        searchMenu.classList.remove('hidden');
+        searchMenu.classList.add('absolute');
+    }else {
+        searchMenu.classList.remove('absolute');
+        searchMenu.classList.add('hidden');
+    }
+}
+
+

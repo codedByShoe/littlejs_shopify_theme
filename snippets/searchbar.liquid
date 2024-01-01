@@ -1,5 +1,5 @@
-<div v-cloak :class="{'hidden': !searchMenuOpen}" class="w-full z-50 absolute top-0 bg-black/90 border">
-  <button @click="searchMenuOpen = false" type="button" class="absolute top-0 right-0 mr-5 mt-5 text-white">
+<div id="search-menu" class="w-full z-50 hidden top-0 left-0 right-0 bg-black/90 border">
+  <button onclick="toggleSearchMenu()" type="button" class="absolute top-0 right-0 mr-5 mt-5 text-white">
     {% render 'icon-close' %}
   </button>
   <div class="h-screen flex justify-center items-center">
