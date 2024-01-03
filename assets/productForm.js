@@ -1,19 +1,19 @@
-const url = new URL(window.location)
-const productUrl = url.pathname + '.js';
 let product =  {}; 
-const productPrice = document.querySelector('.product-price')
-const productComparePrice = document.querySelector('.product-compare-at-price')
+const url = new URL(window.location);
+const productUrl = url.pathname + '.js';
+const productPrice = document.querySelector('.product-price');
+const productComparePrice = document.querySelector('.product-compare-at-price');
+let variantId;
 
-async function fetchProduct() {
-    const response = await fetch(productUrl);
-    const response_1 = await response.json();
-    return response_1
-}
-fetchProduct()
-.then(response => {
-    product = response
-    console.log(product)
-});
+(async () => {
+    try {
+        const response = await fetch(productUrl);
+        const response_1 = await response.json();
+        product = response_1;
+    } catch (error) {
+        console.error('Error fetching product:', error);
+    }
+})();
 
 document.querySelectorAll('.product-option input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', () => {
@@ -52,6 +52,7 @@ document.querySelectorAll('.product-option input[type="radio"]').forEach(radio =
         // update url based on selected option
         url.searchParams.set('variant' ,matchedVariant.id)
         window.history.pushState({}, '', url.toString())
+        variantId = matchedVariant.id;
 
         // change prices based on selected option
         const money = (value) => {
@@ -65,4 +66,31 @@ document.querySelectorAll('.product-option input[type="radio"]').forEach(radio =
         matchedVariant.compare_at_price > matchedVariant.price ? productComparePrice.classList.remove('hidden') :
         productComparePrice.classList.add('hidden')
     })
+})
+
+document.getElementById('add-to-cart-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const quantity = document.getElementById('product-quantity').value
+
+    let data = {
+        id: variantId,
+        quantity: quantity
+    }
+
+    try {
+        let response = await fetch('/cart/add.js', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            console.log(`HTTP error! status: ${response.status}`);
+        }
+        document.getElementById('view-cart-btn').classList.remove('hidden');
+        return await response.json();
+    } catch (error) {
+        console.log(`There was a problem with the fetch operation: ${error}`);
+    }
 })

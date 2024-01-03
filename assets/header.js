@@ -1,14 +1,14 @@
 
-const getCartItemsCount =  async () => {
+(async () => {
     const response = await fetch('/cart.js');
     const response_1 = await response.json();
-    return response_1.item_count;
+    updateCartCount(response_1.item_count);
+})();
+
+const updateCartCount = (count = 0) => {
+document.getElementById('counter').innerHTML = count;
 }
 
-getCartItemsCount()
-.then(itemCount => {
-    document.getElementById('counter').innerHTML = itemCount
-})
 
 
 const toggleMobileMenu = () => {

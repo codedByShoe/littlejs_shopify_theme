@@ -1,106 +1,119 @@
-<script type="module" src="{{ 'cart.js' | asset_url }}"></script>
+<script src="{{ 'cart.js' | asset_url }}" defer></script>
 {% if cart.item_count > 0 %}
-  <section id="cart">
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <div class="mx-auto max-w-5xl">
-        <header class="text-center">
-          <h1 class="text-xl font-bold text-gray-900 sm:text-3xl">Your Cart</h1>
-        </header>
-
-        <div class="mt-8">
-          <ul class="space-y-4">
-              <template v-for="item in cartItems" :key="item.id">
-                <li v-cloak class="flex items-center gap-4">
-                  <a :href="item.url">
-                      <img
-                        :src="item.image"
-                        alt="item.image_alt"
-                        class="w-16 h-16 object-cover rounded"
-                        loading="eager" />
-                  </a>
-                  <div>
-                  <h3 class=" text-gray-900">
-                    <a :href="item.url" class="my-1">${item.title}</a>
-                  </h3>
-                    <template v-for="(option, index) in item.item_options" :key="index">
-                      <dl class="mt-0.5 space-y-px text-[12px] text-gray-600">
-                        <div>
-                          <dt class="inline">${option.name}: </dt>
-                          <dd class="inline">${option.value}</dd>
-                        </div>
-                      </dl>
-                    </template>
-                    </div>
-                  <div class="mt-0.5 flex flex-1 justify-end text-gray-600">
-                  <label for="Quantity-" class="sr-only">
-                    Quantity
-                  </label>
-                  <div class="w-32 flex items-center rounded border border-gray-900">
-                    <button
-                      @click="item.quantity = decrementQuantity(item.key, item.quantity)"
-                      type="button"
-                      class="h-10 w-10 leading-10 text-gray-900 transition hover:opacity-75">
-                      &minus;
-                    </button>
-
-                    <input
-                      type="number"
-                      id="Quantity-"
-                      name="Quantity-"
-                      :value="item.quantity"
-                      class="h-10 w-16 border-transparent text-center [-moz-appearance:_textfield] sm:text-sm [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none" />
-
-                    <button
-                      @click="item.quantity = incrementQuantity(item.key, item.quantity)"
-                      type="button"
-                      class="h-10 w-10 leading-10 text-gray-600 transition hover:opacity-75">
-                      &plus;
-                    </button>
-                  </div>
-                  </div>
-
-                  <div class="flex flex-1 items-center justify-end gap-4">
-                    <span>${store.money(item.price)}</span>
-
-                    <button @click="removeFromCart($event, item.key)" class="text-gray-600 transition hover:text-red-600">
-                      <span class="sr-only">Remove item</span>
-                      {% render 'icon-trash' %}
-                    </button>
-                  </div>
-                </li>
-              </template>
-          </ul>
-
-          {% comment %} Totals {% endcomment %}
-          <div class="mt-8 flex justify-end border-t border-gray-100 pt-8">
-            <div class="w-screen max-w-lg space-y-4">
-              <dl class="space-y-0.5 text-sm text-gray-700">
-                <div v-cloak class="flex justify-between my-4">
-                  <dt>Subtotal</dt>
-                  <dd>${store.money(cartSubtotal)}</dd>
-                </div>
-
-              <div class="flex justify-end">
-                <a href="#" class="btn btn-neutral">
-                  Checkout
-                </a>
+  <div id="cart-main" class="p-4">
+    <div id="cart-container">
+      <div class="max-w-6xl flex flex-col my-10 mx-auto">
+        <div class="flex items-end justify-between my-5">
+          <h1 class="text-3xl">Your cart</h1>
+          <a href="{{ routes.all_products_collection_url }}" class="text-blue-600 hover:text-blue-800 font-medium underline">Continue shopping</a>
+        </div>
+      </div>
+      <div class="max-w-6xl flex flex-col my-10 mx-auto">
+        <form
+          action="{{ routes.cart_url }}"
+          method="POST"
+          novalidate>
+          <div class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500">Product</th>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500">Quantity</th>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500">Total Price</th>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500">Remove</th>
+              </thead>
+              <tbody>
+                {% for item in cart.items %}
+                  <tr class="cart-item table-row" data-key="{{ item.key }}">
+                    <td class="py-4 px-2 flex flex-col md:flex-row md:items-center justify-center">
+                      <a href="{{ item.url }}">
+                        {% if item.image %}
+                          <img
+                            src="{{ item.image | img_url: 'small' }}"
+                            alt="{{ item.title | escape }}"
+                            class="w-20 h-20 object-cover border"
+                            loading="eager" />
+                        {% else %}
+                          {{ 'product-1' | placeholder_svg_tag: 'w-20 h-20 object-cover border' }}
+                        {% endif %}
+                      </a>
+                      <div class="mx-auto">
+                        <a href="{{ item.url }}" class="my-1">{{ item.product.title | truncatewords: 5 }}</a>
+                        <span class="text-sm text-gray-500 my-1">{{ item.variant.title }}</span>
+                      </div>
+                    </td>
+                    <td class="py-4 px-2">
+                      <div class="cart-quantity-selector border border-base-300 flex items-center justify-center w-40 p-2 mx-auto">
+                        <button
+                          id="cart-btn-minus"
+                          type="button"
+                          class="btn btn-square btn-sm btn-ghost">{% render 'icon-minus' %}</button>
+                        <input
+                          type="text"
+                          name="updates[]"
+                          value="{{ item.quantity }}"
+                          min="1"
+                          id="updates_{{ forloop.index }}"
+                          class="w-20 border-none text-center text-sm focus:outline-none focus:border-none focus:ring-0">
+                        <button
+                          id="cart-btn-plus"
+                          type="button"
+                          class="btn btn-square btn-sm btn-ghost">{% render 'icon-plus' %}</button>
+                      </div>
+                    </td>
+                    <td class="py-4 px-2">
+                      <div class="text-center">
+                        <span class="line-item-price">{{ item.line_price | money }}</span>
+                      </div>
+                    </td>
+                    <td class="py-4 px-2">
+                      <div class="flex justify-center">
+                        <a id="cart-remove-item" href="{{ item.url_to_remove }}">{% render 'icon-trash' %}</a>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="flex flex-col md:flex-row items-center justify-between">
+            <div class="w-full my-4">
+              <div class="flex flex-col items-start">
+                <label for="cart_notes" class="my-1">Cart notes</label>
+                <textarea
+                  name="note"
+                  id="cart_notes"
+                  class="w-full md:max-w-lg resize-none border h-20"></textarea>
               </div>
             </div>
-          </div>
-        </div>
-{% comment %} notes do something with this {% endcomment %}
-        <div class="w-full my-4">
-            <div class="flex flex-col items-start">
-              <label for="cart_notes" class="my-1">Cart notes</label>
-              <textarea
-                name="note"
-                id="cart_notes"
-                class="w-full md:max-w-lg resize-none border h-20"></textarea>
+            <div class="w-full my-4 md:w-80">
+              {% for block in section.blocks %}
+                {% case block.type %}
+                  {% when 'subtotal' %}
+                    <h3 class="text-xl">Discount:
+                      <span id="cart-discount">{{ cart.total_discount | money }}</span>
+                    </h3>
+                    <h3 class="text-xl">Subtotal:
+                      <span id="cart-subtotal">{{ cart.total_price | money }}</span>
+                    </h3>
+                  {% when 'checkout_button' %}
+                    <div class="my-2">
+                      <button
+                        id="cart-btn-submit"
+                        type="submit"
+                        name="checkout"
+                        class="btn btn-neutral btn-block btn-lg">
+                        Checkout
+                      </button>
+                    </div>
+                {% else %}
+                  {% endcase %}
+                {% endfor %}
+              </div>
             </div>
-          </div>
+          </form>
+        </div>
       </div>
     </div>
-  </section>
   {% else %}
     <div class="max-w-6xl h-60 my-4 mx-auto flex items-center justify-center">
       <div class="text-center">
@@ -113,8 +126,6 @@
       </div>
     </div>
   {% endif %}
-
-
 
   {% schema %}
     {
