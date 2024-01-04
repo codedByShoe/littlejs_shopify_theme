@@ -9,8 +9,6 @@ const updateCartCount = (count = 0) => {
 document.getElementById('counter').innerHTML = count;
 }
 
-
-
 const toggleMobileMenu = () => {
     const mobileMenu = document.getElementById('mobile-menu');
     if(mobileMenu.classList.contains('hidden')) {
