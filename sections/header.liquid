@@ -5,11 +5,11 @@
   <div class="navbar bg-base-100 relative max-w-7xl mx-auto">
     <div class="navbar-start">
       <div class="hidden lg:flex">
-        <ul class="menu menu-horizontal space-x-2">
-          <li>twitter</li>
-          <li>facebook</li>
-          <li>instagram</li>
-          <li>tiktok</li>
+        <ul class="flex space-x-2">
+          <li>{% render 'icon-twitter' %}</li>
+          <li>{% render 'icon-facebook' %}</li>
+          <li>{% render 'icon-instagram' %}</li>
+          <li>{% render 'icon-tiktok' %}</li>
         </ul>
       </div>
       <!-- mobile dropdown -->
@@ -40,7 +40,7 @@
           </button>
         </li>
         <li class="relative">
-          <button class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">{% render 'icon-shopping-bag' %}
+          <button onclick="toggleMinicart()" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">{% render 'icon-shopping-bag' %}
             {% comment %} TODO: cart count {% endcomment %}
             <div id="counter" class="bg-neutral rounded-full px-2 text-base-100 absolute top-[-4px] right-[6px]"></div>
           </button>
@@ -52,7 +52,7 @@
     </div>
 
     {% comment %} TODO: Fix this to have a cleaner fade in and fade out effect {% endcomment %}
-    <div id="mobile-menu" class="pt-3 hidden shadow bg-base-100 top-28 left-0 right-0 border-t-2">
+    <div id="mobile-menu" class="pt-3 hidden lg:hidden shadow bg-base-100 top-28 sm:top-20 z-50 left-0 right-0 border-t-2">
       <div class="flex flex-col">
         <ul class="menu p-2 m-1">
           {% render 'header-menu-links'
@@ -75,6 +75,7 @@
     </div>
   </div>
   {% render 'searchbar' %}
+  {% render 'minicart' %}
 </section>
 
 {% schema %}

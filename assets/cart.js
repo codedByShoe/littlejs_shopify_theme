@@ -22,104 +22,48 @@ document.querySelectorAll('#cart-remove-item').forEach(remove => {
         e.preventDefault();
         const item = remove.closest('.cart-item');
         const key = item.getAttribute('data-key')
-        let data = {
-            id: key,
-            quantity: 0
-        }
-        try {
-            fetch('/cart/change.js', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then((response) => {
-                if(response.item_count === 0) {
-                    document.querySelector('#cart-container').remove();
-                    const html = document.createElement('div');
-                    html.innerHTML = `
-                        <div class="max-w-6xl h-60 my-4 mx-auto flex items-center justify-center">
-                            <div class="text-center">
-                                <h1 class="text-3xl my-4">Your cart is empty</h1>
-                                <div class="my-4 py-4">
-                                <a href="/collections/all" class="border border-gray-600 text-white bg-gray-600 px-8 py-3">
-                                    Continue shopping
-                                </a>
-                                </div>
+        sendPost('/cart/change.js', {id: key, quantity})
+        .then((response) => {
+            if(response.item_count === 0) {
+                document.querySelector('#cart-container').remove();
+                const html = document.createElement('div');
+                html.innerHTML = `
+                    <div class="max-w-6xl h-60 my-4 mx-auto flex items-center justify-center">
+                        <div class="text-center">
+                            <h1 class="text-3xl my-4">Your cart is empty</h1>
+                            <div class="my-4 py-4">
+                            <a href="/collections/all" class="border border-gray-600 text-white bg-gray-600 px-8 py-3">
+                                Continue shopping
+                            </a>
                             </div>
-                        </div> 
-                    `;
-                document.querySelector('#cart-main').appendChild(html); 
-                }else {
-                    const totalDiscount = '$' + (response.total_discount/100).toFixed(2);
-                    const subtotal = '$' + (response.items_subtotal_price/100).toFixed(2);
-                    document.getElementById('cart-subtotal').textContent = subtotal;
-                    document.getElementById('cart-discount').textContent = totalDiscount;
-                    item.remove()
-                }
-                updateCartCount(response.item_count);
+                        </div>
+                    </div> 
+                `;
+            document.querySelector('#cart-main').appendChild(html); 
+            }else {
+                document.getElementById('cart-subtotal').textContent ='$' + (response.items_subtotal_price/100).toFixed(2); 
+                document.getElementById('cart-discount').textContent ='$' + (response.total_discount/100).toFixed(2); 
+                item.remove()
+            }
+            fetchMinicart(response);
         })
-        } catch (error) {
-            console.log(`There was a problem with the fetch operation: ${error}`);
-        }
     })
 })
 
 // update cart notes
 document.querySelector('[name=note]').addEventListener('keyup', debounce((e) => {
-    try {
-        fetch('/cart/update.js', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({note: e.target.value})
-        })
-        .then(response => response.json())
-    } catch (error) {
-        console.log(`There was a problem with the fetch operation: ${error}`);
-    }
+    sendPost('/cart/update.js', e.target.value)
 }));
-
-// debounce input on textarea
-function debounce(func, timeout = 500){
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { func.apply(this, args); }, timeout);
-  };
-}
 
 // update cart on quantity input change
 function changeItemQuantity(key, quantity) {
-    let data = {
-        id: key, 
-        quantity: quantity
-    };
 
-    try {
-        fetch('/cart/change.js', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then((response) => {
-            console.log(response);
-            const totalDiscount = '$' + (response.total_discount/100).toFixed(2);
-            const subtotal = '$' + (response.items_subtotal_price/100).toFixed(2);
-            const item = response.items.find(item => item.key === key);
-            const itemPrice = '$' + (item.final_line_price/100).toFixed(2);
-            document.getElementById('cart-subtotal').textContent = subtotal;
-            document.getElementById('cart-discount').textContent = totalDiscount;
-            document.querySelector(`[data-key="${key}"] .line-item-price`).textContent = itemPrice;
-            updateCartCount(response.item_count);
-        })
-    } catch (error) {
-        console.log(`There was a problem with the fetch operation: ${error}`);
-    }
+    sendPost('/cart/change.js', {id: key, quantity: quantity})
+    .then((response) => {
+        const item = response.items.find(item => item.key === key);
+        document.getElementById('cart-subtotal').textContent ='$' + (response.items_subtotal_price/100).toFixed(2); 
+        document.getElementById('cart-discount').textContent = '$' + (response.total_discount/100).toFixed(2);
+        document.querySelector(`[data-key="${key}"] .line-item-price`).textContent ='$' + (item.final_line_price/100).toFixed(2); 
+        fetchMinicart(response);
+    })
 }

@@ -2,15 +2,14 @@
         {% if link.links != blank %}
           <li class="">
             <button
-              id="dropdown_{{ forloop.index }}"
-              @click="dropdown_{{ forloop.index }} = !dropdown_{{ forloop.index }}"
+              id="menu-btn-{{ forloop.index }}"
               class="inline-flex items-center">
               {{ link.title }}
               {% render 'icon-dropdown' %}
             </button>
             <!-- Dropdown Sub links -->
             {% for childlink in link.links %}
-              <ul v-show="dropdown_3" v-cloak class="menu absolute bg-base-100 top-10 z-20">
+              <ul id="child-dropdown-{{ forloop.index }}" class="hidden bg-base-100 top-10 z-20">
                 <li>
                   <a href="{{ childlink.url }}" class="">
                     {{ childlink.title }}

@@ -71,26 +71,18 @@ document.querySelectorAll('.product-option input[type="radio"]').forEach(radio =
 document.getElementById('add-to-cart-btn').addEventListener('click', async (e) => {
     e.preventDefault();
     const quantity = document.getElementById('product-quantity').value
-
-    let data = {
-        id: variantId,
-        quantity: quantity
+    if(!variantId) {
+        variantId = url.searchParams.get('variant');
     }
-
-    try {
-        let response = await fetch('/cart/add.js', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-        if (!response.ok) {
-            console.log(`HTTP error! status: ${response.status}`);
-        }
+    sendPost('/cart/add.js',{ id: variantId, quantity: quantity})
+    .then(response => {
         document.getElementById('view-cart-btn').classList.remove('hidden');
-        return await response.json();
-    } catch (error) {
-        console.log(`There was a problem with the fetch operation: ${error}`);
-    }
-})
+        updateHeader();
+        return response
+    })
+});
+async function updateHeader() {
+    const response = await fetch('/cart.js');
+    const response_1 = await response.json();
+    fetchMinicart(response_1); 
+}
