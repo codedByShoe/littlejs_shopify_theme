@@ -3,7 +3,6 @@
     "dev": "npx tailwindcss -i ./assets/application.css -o ./assets/output.css --watch"
   },
   "devDependencies": {
-    "daisyui": "^4.4.24",
     "tailwindcss": "^3.3.5"
   },
   "dependencies": {

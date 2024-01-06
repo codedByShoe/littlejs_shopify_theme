@@ -1,19 +1,35 @@
 {% comment %} {{ 'header.js' | asset_url | script_tag }} {% endcomment %}
 <script src="{{ 'header.js' | asset_url }}" defer></script>
 <!-- mega menu -->
-<section id="header" class="relative">
-  <div class="navbar bg-base-100 relative max-w-7xl mx-auto">
-    <div class="navbar-start">
-      <div class="hidden lg:flex">
-        <ul class="flex space-x-2">
-          <li>{% render 'icon-twitter' %}</li>
-          <li>{% render 'icon-facebook' %}</li>
-          <li>{% render 'icon-instagram' %}</li>
-          <li>{% render 'icon-tiktok' %}</li>
-        </ul>
+<section id="header" class="w-full relative px-8 text-gray-700 bg-white">
+  <div class="py-6 mx-auto max-w-7xl md:flex-row">
+    <div class="flex items-center py-5 border-b border-gray-200">
+      {% comment %} social icons {% endcomment %}
+      <div class="lg:inline-flex items-center hidden space-x-6 lg:w-2/5 justify-start lg:mr-0">
+        <span class="inline-flex justify-center mt-4 space-x-5 md:mr-auto md:mt-0 md:justify-start">
+          <a href="#" class="text-gray-400 hover:text-gray-500">
+            <span class="sr-only">Facebook</span>
+            {% render 'icon-facebook' %}
+          </a>
+
+          <a href="#" class="text-gray-400 hover:text-gray-500">
+            <span class="sr-only">Instagram</span>
+            {% render 'icon-instagram' %}
+          </a>
+
+          <a href="#" class="text-gray-400 hover:text-gray-500">
+            <span class="sr-only">Twitter</span>
+            {% render 'icon-twitter' %}
+          </a>
+
+          <a href="#" class="text-gray-400 hover:text-gray-500">
+            <span class="sr-only">GitHub</span>
+            {% render 'icon-tiktok' %}
+          </a>
+        </span>
       </div>
-      <!-- mobile dropdown -->
-      <div class=" lg:hidden">
+      {% comment %} mobile dropdown button {% endcomment %}
+      <div class="inline-flex items-center lg:hidden w-2/5 justify-start">
         <button
           onclick="toggleMobileMenu()"
           id="menu-toggler"
@@ -22,53 +38,28 @@
           {% render 'icon-hamburger-menu' %}
         </button>
       </div>
-    </div>
-    <div class="navbar-center flex">
-      {% if settings.logo != blank %}
-        <a href="{{ shop.url }}">
+      {% comment %} logo {% endcomment %}
+      <a href="{{ shop.url }}" class="flex items-center mb-4 font-medium text-gray-800 lg:order-none lg:w-1/5 title-font lg:items-center lg:justify-center md:mb-0">
+        {% if settings.logo != blank %}
           <img src="{{ settings.logo | img_url: '100x' }}" alt="{{ shop.name | escape }}">
-        </a>
-      {% else %}
-        <a href="{{ shop.url }}" class="btn btn-ghost text-xl">{{ shop.name }}</a>
-      {% endif %}
-    </div>
-    <div class="navbar-end">
-      <ul class="menu menu-horizontal">
-        <li>
-          <button onclick="toggleSearchMenu()" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">
-            {% render 'icon-search' %}
-          </button>
-        </li>
-        <li class="relative">
-          <button onclick="toggleMinicart()" class="whitespace-nowrap text-base text-gray-500 hover:text-gray-900">{% render 'icon-shopping-bag' %}
-            {% comment %} TODO: cart count {% endcomment %}
-            <div id="counter" class="bg-neutral rounded-full px-2 text-base-100 absolute top-[-4px] right-[6px]"></div>
-          </button>
-        </li>
-      </ul>
-      <ul class="menu menu-horizontal hidden lg:flex">
+        {% else %}
+          <h2 href="{{ shop.url }}" class="text-xl">{{ shop.name }}</h2>
+        {% endif %}
+      </a>
+      <div class="flex items-center text-base w-2/5 justify-end ml-auto">
+        <button onclick="toggleSearchMenu()" class="mr-5 font-semibold leading-6 text-gray-500 hover:text-gray-600">
+          {% render 'icon-search' %}
+        </button>
+        <button onclick="toggleMinicart()" class="mr-5 relative font-semibold leading-6 text-gray-500 hover:text-gray-600">
+          {% render 'icon-shopping-bag' %}
+          <span id="counter" class="bg-gray-900 rounded-full px-1 text-white text-xs absolute top-[-5px] right-0"></span>
+        </button>
         {% render 'header-customer-links' %}
-      </ul>
-    </div>
-
-    {% comment %} TODO: Fix this to have a cleaner fade in and fade out effect {% endcomment %}
-    <div id="mobile-menu" class="pt-3 hidden lg:hidden shadow bg-base-100 top-28 sm:top-20 z-50 left-0 right-0 border-t-2">
-      <div class="flex flex-col">
-        <ul class="menu p-2 m-1">
-          {% render 'header-menu-links'
-            , links: section.settings.menu.links %}
-        </ul>
-        <ul class="menu p-2 m-1">
-          {% render 'header-customer-links' %}
-        </ul>
       </div>
     </div>
-  </div>
-  <div class="divider max-w-7xl mx-auto my-0"></div>
-  <div class="bg-base-100 items-center justify-center hidden lg:flex">
-    <div class="">
-      <!-- desktop menu -->
-      <ul class="menu menu-horizontal px-1">
+    {% comment %} navigation {% endcomment %}
+    <div class="max-w-7xl">
+      <ul class="flex items-center justify-center gap-4 px-1 py-3">
         {% render 'header-menu-links'
           , links: section.settings.menu.links %}
       </ul>
@@ -77,6 +68,7 @@
   {% render 'searchbar' %}
   {% render 'minicart' %}
 </section>
+
 
 {% schema %}
   {
