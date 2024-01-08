@@ -42,9 +42,9 @@ const toggleMobileMenu = () => {
     const mobileMenu = document.getElementById('mobile-menu');
     if(mobileMenu.classList.contains('hidden')) {
         mobileMenu.classList.remove('hidden');
-        mobileMenu.classList.add('absolute');
+        mobileMenu.classList.add('block');
     }else {
-        mobileMenu.classList.remove('absolute');
+        mobileMenu.classList.remove('block');
         mobileMenu.classList.add('hidden');
     }
 }

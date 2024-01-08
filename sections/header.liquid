@@ -1,8 +1,7 @@
-{% comment %} {{ 'header.js' | asset_url | script_tag }} {% endcomment %}
 <script src="{{ 'header.js' | asset_url }}" defer></script>
 <!-- mega menu -->
-<section id="header" class="w-full relative px-8 text-gray-700 bg-white">
-  <div class="py-6 mx-auto max-w-7xl md:flex-row">
+<section id="header" class="w-full relative lg:px-8 text-gray-700 bg-white">
+  <div class="py-6 mx-auto max-w-7xl md:flex-row px-2 lg:px-0">
     <div class="flex items-center py-5 border-b border-gray-200">
       {% comment %} social icons {% endcomment %}
       <div class="lg:inline-flex items-center hidden space-x-6 lg:w-2/5 justify-start lg:mr-0">
@@ -58,12 +57,19 @@
       </div>
     </div>
     {% comment %} navigation {% endcomment %}
-    <div class="max-w-7xl">
+    <div class="max-w-7xl hidden lg:block">
       <ul class="flex items-center justify-center gap-4 px-1 py-3">
         {% render 'header-menu-links'
           , links: section.settings.menu.links %}
       </ul>
     </div>
+  </div>
+  {% comment %} mobile menu {% endcomment %}
+  <div id="mobile-menu" class="hidden shadow w-full lg:hidden">
+    <ul class="flex flex-col gap-4 px-1 py-3">
+      {% render 'header-menu-links'
+        , links: section.settings.menu.links %}
+    </ul>
   </div>
   {% render 'searchbar' %}
   {% render 'minicart' %}

@@ -111,7 +111,7 @@
                   type="submit"
                   id="add-to-cart-btn"
                   name="add"
-                  class="btn btn-neutral btn-block"
+                  class="bg-gray-900 px-4 py-2 text-white w-full hover:bg-gray-800"
                   {% if selected_variant.available == false %}
                   disabled
                   {% endif %}>
@@ -124,7 +124,7 @@
                 <a
                   id="view-cart-btn"
                   href="{{ routes.cart_url }}"
-                  class="hidden btn btn-outline btn-block">
+                  class="hidden border border-gray-900 w-full text-gray-900 hover:bg-gray-900 hover:text-white">
                   View Cart
                 </a>
               </div>

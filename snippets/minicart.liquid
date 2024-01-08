@@ -46,18 +46,20 @@
                     {% for item in cart.items %}
                     <li id="minicart-item-{{ item.key }}" class="flex py-6">
                       <div class="h-20 w-20 flex-shrink-0 overflow-hidden border border-gray-200">
+                        <a href="{{ item.url }}">
                         <img
                             src="{{ item.image | img_url: 'small' }}"
                             alt="{{ item.title | escape }}"
                             class="object-cover w-20 h-20"
                             loading="eager" />
+                            </a>
                       </div>
 
                       <div class="ml-4 flex flex-1 flex-col">
                         <div>
                           <div class="flex justify-between text-base font-medium text-gray-900">
                             <h3>
-                              <a href="#">{{ item.product.title | truncatewords: 5 }}</a>
+                              <a href="{{ item.url }}">{{ item.product.title | truncatewords: 5 }}</a>
                             </h3>
                             <p class="ml-4">{{ item.line_price | money }}</p>
                           </div>
