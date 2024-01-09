@@ -1,16 +1,19 @@
-<div id="search-menu" class="w-full z-50 hidden top-0 left-0 right-0 bg-black/90 border">
+<div id="search-menu" class="w-full hidden z-50 top-0 left-0 right-0 bg-white shadow-xl">
   <button onclick="toggleSearchMenu()" type="button" class="absolute top-0 right-0 mr-5 mt-5 text-white">
     {% render 'icon-close' %}
   </button>
-  <div class="h-screen flex justify-center items-center">
+  <div class="h-48 relative flex justify-center items-center">
+    <button onclick="toggleSearchMenu()" class="absolute top-5 right-5 text-gray-600 cursor-pointer hover:text-gray-800">
+      {% render 'icon-close' %}
+    </button>
     <form action="{{ routes.search_url }}" method="GET" class="flex-auto">
-      <div class="flex items-center justify-between text-white px-4 max-w-5xl pb-4 mx-auto border-b-2 border-b-white">
+      <div class="flex items-center justify-between text-white px-4 max-w-5xl pb-4 mx-auto">
         <input 
            type="search" 
            name="q" 
            placeholder="Search..." 
-           class="w-full bg-transparent h-10 pr-10 px-5 text-3xl focus:outline-none" />
-        <button type="submit" class=" text-gray-900 rounded-full bg-gray-100 p-3 mr-2 md:mr-12">
+           class="w-full bg-transparent h-10 pr-10 text-gray-800 px-5 text-3xl py-6 focus:ring-0 focus:placeholder-transparent focus:outline-none focus:border-gray-800 border-l-2 border-gray-800 border-t-2 border-b-2 border-r-0 placeholder:text-gray-800" />
+        <button type="submit" class=" text-gray-800 p-3 mr-2 md:mr-12 border-gray-800 border-t-2 border-r-2 border-b-2">
           {% render 'icon-search' %}
         </button>
       </div>

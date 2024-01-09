@@ -1,6 +1,40 @@
 <script src="{{ 'productForm.js' | asset_url }}" defer></script>
 {% assign selected_variant = product.selected_or_first_available_variant %}
 
+{% if selected_variant.featured_image %}
+  <img
+    src="{{ selected_variant.featured_image | image_url: width: master }}"
+    alt="{{ selected_variant.featured_image.alt }}"
+    class="w-full h-full object-cover"
+    loading="eager">
+{% else %}
+  <img
+    src="{{ product.featured_image | image_url: width: master }}"
+    alt="{{ product.featured_image.alt }}"
+    class="w-full h-full object-cover"
+    loading="eager">
+{% endif %}
+
+{% for media in product.media %}
+  {% case media.media_type %}
+    {% when 'image' %}
+      <img
+        src="{{ media | img_url: 'large' }}"
+        alt="{{ media.preview_image.alt }}"
+        class="w-full h-full object-cover"
+        loading="eager">
+    {% when 'external_video' %}
+      {{ media | external_video_tag: class: 'w-full h-80 object-cover' }}
+    {% when 'video' %}
+      {{ media | video_tag: controls: true, class: 'w-full h-full object-cover' }}
+    {% when 'model' %}
+      {{ media | model_viewer_tag }}
+    {% else %}
+      {{ media | media_tag }}
+  {% endcase %}
+{% endfor %}
+
+
 <!-- TODO: create a better image selector on large screens -->
 <div class="max-w-6xl mx-auto my-8">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
